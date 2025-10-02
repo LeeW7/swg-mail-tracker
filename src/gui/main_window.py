@@ -82,9 +82,22 @@ class MainWindow(ctk.CTk):
         header.pack(fill="x", padx=0, pady=0)
         header.pack_propagate(False)
 
+        # Logo (left side of header)
+        try:
+            from pathlib import Path
+            from PIL import Image
+            icon_path = Path(__file__).parent.parent / "resources" / "icon.png"
+            if icon_path.exists():
+                logo_image = Image.open(icon_path)
+                logo_ctk = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(50, 50))
+                logo_label = ctk.CTkLabel(header, image=logo_ctk, text="")
+                logo_label.pack(side="left", padx=(20, 10), pady=15)
+        except Exception as e:
+            logger.warning(f"Could not load header logo: {e}")
+
         # Title and subtitle
         title_frame = ctk.CTkFrame(header, fg_color="transparent")
-        title_frame.pack(side="left", padx=20, pady=15)
+        title_frame.pack(side="left", padx=(10, 20), pady=15)
 
         app_title = ctk.CTkLabel(
             title_frame,
