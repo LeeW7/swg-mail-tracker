@@ -55,11 +55,12 @@ class MainWindow(ctk.CTk):
 
         # Set window icon
         try:
-            import os
             from pathlib import Path
-            icon_path = Path(__file__).parent.parent / "resources" / "icon.png"
-            if icon_path.exists():
-                from PIL import Image
+            from PIL import Image
+            from src.utils import get_resource_path
+
+            icon_path = get_resource_path("resources/icon.png")
+            if Path(icon_path).exists():
                 icon_image = Image.open(icon_path)
                 self.iconphoto(True, ctk.CTkImage(light_image=icon_image, dark_image=icon_image, size=(32, 32))._light_image)
         except Exception as e:
@@ -87,8 +88,10 @@ class MainWindow(ctk.CTk):
         try:
             from pathlib import Path
             from PIL import Image
-            icon_path = Path(__file__).parent.parent / "resources" / "icon.png"
-            if icon_path.exists():
+            from src.utils import get_resource_path
+
+            icon_path = get_resource_path("resources/icon.png")
+            if Path(icon_path).exists():
                 logo_image = Image.open(icon_path)
                 logo_ctk = ctk.CTkImage(light_image=logo_image, dark_image=logo_image, size=(50, 50))
                 logo_label = ctk.CTkLabel(header, image=logo_ctk, text="")

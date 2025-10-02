@@ -44,9 +44,11 @@ class SystemTray:
         try:
             # Try to load the logo from resources
             from pathlib import Path
-            icon_path = Path(__file__).parent.parent / "resources" / "icon.png"
+            from src.utils import get_resource_path
 
-            if icon_path.exists():
+            icon_path = get_resource_path("resources/icon.png")
+
+            if Path(icon_path).exists():
                 image = Image.open(icon_path)
                 # Resize to system tray size if needed
                 image = image.resize((64, 64), Image.Resampling.LANCZOS)
