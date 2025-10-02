@@ -70,6 +70,7 @@ class MainWindow(ctk.CTk):
 
         # Set appearance mode
         ctk.set_appearance_mode("dark")
+        ctk.deactivate_automatic_dpi_awareness()  # May help with theme widget
 
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_window_close)
