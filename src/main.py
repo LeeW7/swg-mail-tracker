@@ -67,6 +67,11 @@ class SWGMailTrackerApp:
 
     def setup_system_tray(self):
         """Set up system tray icon"""
+        # Only enable system tray on Windows
+        if sys.platform != 'win32':
+            logger.info("System tray disabled on non-Windows platform")
+            return
+
         try:
             self.system_tray = SystemTray(
                 on_show=self.show_window,
