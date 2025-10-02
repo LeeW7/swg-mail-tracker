@@ -41,7 +41,20 @@ class SystemTray:
 
     def create_icon(self):
         """Create system tray icon"""
-        # Create a simple icon (green circle on dark background)
+        try:
+            # Try to load the logo from resources
+            from pathlib import Path
+            icon_path = Path(__file__).parent.parent / "resources" / "icon.png"
+
+            if icon_path.exists():
+                image = Image.open(icon_path)
+                # Resize to system tray size if needed
+                image = image.resize((64, 64), Image.Resampling.LANCZOS)
+                return image
+        except Exception as e:
+            logger.warning(f"Could not load logo for system tray: {e}")
+
+        # Fallback: Create a simple icon (green circle on dark background)
         width = 64
         height = 64
         image = Image.new('RGB', (width, height), (10, 15, 10))
