@@ -2,8 +2,14 @@
 """
 PyInstaller spec file for SWG Mail Tracker
 """
+import os
+from pathlib import Path
 
 block_cipher = None
+
+# Get absolute paths
+spec_root = Path(SPECPATH).parent
+icon_path = spec_root / 'src' / 'resources' / 'icon.ico'
 
 a = Analysis(
     ['../src/main.py'],
@@ -55,6 +61,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='../src/resources/icon.ico' if os.path.exists('../src/resources/icon.ico') else None,
+    icon=str(icon_path) if icon_path.exists() else None,
     version_file=None,
 )
