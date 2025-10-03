@@ -14,6 +14,77 @@
 
 **That's it!** No installation required. No Python. No dependencies.
 
+### ⚠️ Windows Defender / SmartScreen Warning
+
+**This is completely normal and expected!** Since this application is not digitally signed with a paid certificate, Windows will show security warnings.
+
+#### When Downloading (Browser Warning)
+
+**Microsoft Edge / Chrome:**
+1. Your browser may block the download with a warning
+2. Click on the **three dots (...)** or **"Show more"**
+3. Click **"Keep"** or **"Keep anyway"**
+
+**Why this happens:** Unsigned .exe files trigger browser protection. This is a false positive - the app is safe.
+
+#### When Running (Windows Defender SmartScreen)
+
+**First-time launch warning:**
+
+When you double-click `SWGMailTracker.exe`, Windows may show:
+
+```
+Windows protected your PC
+Microsoft Defender SmartScreen prevented an unrecognized app from starting.
+```
+
+**To run the application:**
+
+1. Click **"More info"** (small blue text)
+2. Click **"Run anyway"** button
+3. The app will start normally
+
+**Alternative method - Unblock the file:**
+
+1. Right-click on `SWGMailTracker.exe`
+2. Select **Properties**
+3. At the bottom, check the box: **☑️ Unblock**
+4. Click **Apply** → **OK**
+5. Now double-click to run normally
+
+#### Windows Defender Antivirus Alert
+
+If Windows Defender flags the file:
+
+1. Open **Windows Security** (search in Start menu)
+2. Go to **Virus & threat protection**
+3. Click **Protection history**
+4. Find the `SWGMailTracker.exe` alert
+5. Click **Actions** → **Allow**
+
+**Or add an exclusion:**
+
+1. Open **Windows Security**
+2. Go to **Virus & threat protection**
+3. Click **Manage settings** (under "Virus & threat protection settings")
+4. Scroll down to **Exclusions**
+5. Click **Add or remove exclusions**
+6. Click **Add an exclusion** → **File**
+7. Browse to and select `SWGMailTracker.exe`
+
+#### Why Does This Happen?
+
+This application is built with PyInstaller, which packages Python applications into executables. Windows flags unsigned executables from unknown publishers as a security precaution.
+
+**This is a false positive.** The application:
+- ✅ Is open source (you can view all code on GitHub)
+- ✅ Only connects to swgtracker.com
+- ✅ Only reads your SWG mail files
+- ✅ Stores settings locally in config.json
+- ✅ Does not collect or send any personal data
+
+**Why not sign it?** Code signing certificates cost $100-400/year from trusted authorities. This is a free, community tool.
+
 ---
 
 ## 🚀 First Time Setup
@@ -42,22 +113,30 @@ C:\SWG Restoration III\profiles\YourCharacter\Restoration\mail_YourCharacterName
 - Navigate to `profiles\[YourCharacter]\Restoration\`
 - Look for a folder starting with `mail_`
 
-#### 2. API Credentials
+#### 2. SWG Mail Directories (Multiple Characters)
 
-You need to get these from swgtracker.com:
+You can add up to **4 character mail folders**:
 
-**Scanner User ID:**
-- Log in to swgtracker.com
-- Go to your account settings or API section
-- Copy your Scanner User ID
+- Enter an optional character name (e.g., "Main Tank", "Trader") to help identify each folder
+- Browse to each character's mail folder
+- Click **"+ Add Character"** to add more folders (up to 4 total)
+- Use the **×** button to remove a folder
 
-**Scanner User Key (API Key):**
-- In the same location on swgtracker.com
-- Copy your Scanner User Key or API Key
+**Example:** If you have multiple characters, the app will monitor all their mail folders simultaneously!
 
-Paste both into the application.
+#### 3. API Key
 
-#### 3. Application Preferences (Optional)
+You need to get your API Key from swgtracker.com:
+
+**To find your API Key:**
+1. Log in to swgtracker.com
+2. Go to your account settings or API section
+3. Copy your **API Key** (also called Scanner User Key)
+4. Paste it into the application
+
+**Note:** You only need the API Key - no User ID required!
+
+#### 4. Application Preferences (Optional)
 
 - ☑️ **Minimize to system tray** - App hides in system tray when minimized
 - ☑️ **Show desktop notifications** - Get notified when mail is uploaded
@@ -216,15 +295,16 @@ The app creates a `config.json` file in the same folder as the .exe.
 
 ### Multiple Characters
 
-If you play multiple characters:
+The app now supports **up to 4 characters simultaneously**!
 
-1. Stop monitoring
-2. Go to Settings
-3. Browse to the different character's mail folder
-4. Save settings
-5. Start monitoring again
+1. Go to **Settings** tab
+2. Click **"+ Add Character"** to add more mail folders
+3. Enter an optional label for each character (e.g., "Main", "Alt", "Trader")
+4. Browse to each character's mail folder
+5. Click **Save Settings**
+6. Start monitoring - all folders will be watched at once!
 
-**Or:** Run multiple instances of the app (one per character), just copy the .exe to different folders.
+**No need to stop/start or run multiple instances!** The app monitors all configured folders simultaneously.
 
 ### Always Running
 

@@ -15,15 +15,13 @@ class SWGTrackerAPI:
     API_URL = "https://swgtracker.com/import_mailcontent.php"
     TIMEOUT = 10  # seconds
 
-    def __init__(self, user_id: str, user_key: str):
+    def __init__(self, user_key: str):
         """
         Initialize API client
 
         Args:
-            user_id: Scanner user ID
             user_key: Scanner API key
         """
-        self.user_id = user_id
         self.user_key = user_key
 
     def send_mail_content(self, mail_content: str) -> tuple[bool, str]:
@@ -39,7 +37,6 @@ class SWGTrackerAPI:
         try:
             data = {
                 'incomingData': mail_content,
-                'scannerUserID': self.user_id,
                 'scannerUserKey': self.user_key
             }
 
@@ -94,7 +91,6 @@ class SWGTrackerAPI:
             # Send a minimal test payload
             test_data = {
                 'incomingData': 'CONNECTION_TEST',
-                'scannerUserID': self.user_id,
                 'scannerUserKey': self.user_key
             }
 

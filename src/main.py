@@ -36,7 +36,7 @@ class SWGMailTrackerApp:
     def __init__(self):
         """Initialize application"""
         self.config_manager = ConfigManager()
-        self.file_watcher = None
+        self.file_watchers = []  # List of MailFileWatcher instances
         self.api_client = None
         self.main_window = None
         self.system_tray = None
@@ -109,30 +109,57 @@ class SWGMailTrackerApp:
                 return False, "Invalid configuration: " + ", ".join(errors)
 
             # Get configuration
-            mail_path = self.config_manager.get('mail_path')
-            user_id = self.config_manager.get('scanner_user_id')
+            mail_paths = self.config_manager.get('mail_paths', [])
             user_key = self.config_manager.get('scanner_user_key')
 
             # Create API client
-            self.api_client = SWGTrackerAPI(user_id, user_key)
+            self.api_client = SWGTrackerAPI(user_key)
 
-            # Create file watcher
-            self.file_watcher = MailFileWatcher(
-                watch_path=mail_path,
-                callback=self.on_new_mail_file
-            )
+            # Create file watchers for each valid path
+            started_paths = []
+            failed_paths = []
 
-            # Start watching
-            success, message = self.file_watcher.start()
+            for mail_entry in mail_paths:
+                if isinstance(mail_entry, dict):
+                    path = mail_entry.get("path", "")
+                    label = mail_entry.get("label", "")
 
-            if success:
-                # Update system tray
-                if self.system_tray:
-                    self.system_tray.update_monitoring_status(True)
+                    if not path or not os.path.exists(path):
+                        continue
 
-                logger.info(f"Monitoring started: {mail_path}")
+                    # Create watcher for this path
+                    watcher = MailFileWatcher(
+                        watch_path=path,
+                        callback=self.on_new_mail_file
+                    )
 
-            return success, message
+                    # Start watching
+                    success, msg = watcher.start()
+
+                    if success:
+                        self.file_watchers.append(watcher)
+                        display_name = f"{label} ({path})" if label else path
+                        started_paths.append(display_name)
+                        logger.info(f"Monitoring started: {display_name}")
+                    else:
+                        display_name = f"{label} ({path})" if label else path
+                        failed_paths.append(display_name)
+                        logger.error(f"Failed to start monitoring {display_name}: {msg}")
+
+            # Check if at least one watcher started
+            if not self.file_watchers:
+                return False, "Failed to start monitoring any directories"
+
+            # Update system tray
+            if self.system_tray:
+                self.system_tray.update_monitoring_status(True)
+
+            # Build success message
+            message = f"Monitoring {len(started_paths)} director{'y' if len(started_paths) == 1 else 'ies'}"
+            if failed_paths:
+                message += f" ({len(failed_paths)} failed)"
+
+            return True, message
 
         except Exception as e:
             error_msg = f"Failed to start monitoring: {str(e)}"
@@ -147,19 +174,29 @@ class SWGMailTrackerApp:
             Tuple of (success: bool, message: str)
         """
         try:
-            if self.file_watcher:
-                success, message = self.file_watcher.stop()
-
-                if success:
-                    # Update system tray
-                    if self.system_tray:
-                        self.system_tray.update_monitoring_status(False)
-
-                    logger.info("Monitoring stopped")
-
-                return success, message
-            else:
+            if not self.file_watchers:
                 return False, "Monitoring is not active"
+
+            # Stop all watchers
+            stopped_count = 0
+            for watcher in self.file_watchers:
+                success, msg = watcher.stop()
+                if success:
+                    stopped_count += 1
+                else:
+                    logger.error(f"Failed to stop watcher: {msg}")
+
+            # Clear watchers list
+            self.file_watchers = []
+
+            # Update system tray
+            if self.system_tray:
+                self.system_tray.update_monitoring_status(False)
+
+            logger.info("Monitoring stopped")
+
+            message = f"Stopped monitoring {stopped_count} director{'y' if stopped_count == 1 else 'ies'}"
+            return True, message
 
         except Exception as e:
             error_msg = f"Failed to stop monitoring: {str(e)}"
@@ -226,14 +263,13 @@ class SWGMailTrackerApp:
         """
         try:
             # Validate configuration
-            user_id = self.config_manager.get('scanner_user_id')
             user_key = self.config_manager.get('scanner_user_key')
 
-            if not user_id or not user_key:
-                return False, "User ID and API Key are required"
+            if not user_key:
+                return False, "API Key is required"
 
             # Create API client and test
-            api_client = SWGTrackerAPI(user_id, user_key)
+            api_client = SWGTrackerAPI(user_key)
             success, message = api_client.test_connection()
 
             logger.info(f"Connection test: {message}")
@@ -259,7 +295,7 @@ class SWGMailTrackerApp:
         logger.info("Shutting down application")
 
         # Stop monitoring if active
-        if self.file_watcher and self.file_watcher.is_active():
+        if self.file_watchers:
             self.stop_monitoring()
 
         # Stop system tray

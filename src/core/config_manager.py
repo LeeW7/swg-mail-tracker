@@ -14,8 +14,7 @@ class ConfigManager:
     """Manage application configuration"""
 
     DEFAULT_CONFIG = {
-        "mail_path": "",
-        "scanner_user_id": "",
+        "mail_paths": [],  # List of {"path": str, "label": str}
         "scanner_user_key": "",
         "start_with_windows": False,
         "minimize_to_tray": True,
@@ -48,6 +47,10 @@ class ConfigManager:
 
                 # Merge with defaults to ensure all keys exist
                 self.config = {**self.DEFAULT_CONFIG, **loaded_config}
+
+                # Migrate old mail_path to new mail_paths format
+                self._migrate_mail_path()
+
                 logger.info(f"Configuration loaded from {self.config_file}")
                 return True
             else:
@@ -124,19 +127,26 @@ class ConfigManager:
         """
         errors = []
 
-        # Check mail path
-        mail_path = self.get("mail_path", "")
-        if not mail_path:
-            errors.append("Mail path is required")
-        elif not os.path.exists(mail_path):
-            errors.append(f"Mail path does not exist: {mail_path}")
+        # Check mail paths - at least one valid path required
+        mail_paths = self.get("mail_paths", [])
+        if not mail_paths:
+            errors.append("At least one mail directory is required")
+        else:
+            valid_paths = 0
+            for i, mail_entry in enumerate(mail_paths):
+                if isinstance(mail_entry, dict):
+                    path = mail_entry.get("path", "")
+                    if path and os.path.exists(path):
+                        valid_paths += 1
+                    elif path:
+                        errors.append(f"Mail path {i+1} does not exist: {path}")
 
-        # Check user credentials
-        if not self.get("scanner_user_id"):
-            errors.append("Scanner User ID is required")
+            if valid_paths == 0:
+                errors.append("At least one valid mail directory is required")
 
+        # Check API key
         if not self.get("scanner_user_key"):
-            errors.append("Scanner User Key is required")
+            errors.append("API Key is required")
 
         is_valid = len(errors) == 0
         return is_valid, errors
@@ -158,9 +168,12 @@ class ConfigManager:
             parser.read(old_config_path)
 
             if parser.has_section('swg-scanner'):
-                self.set('scanner_user_id', parser.get('swg-scanner', 'scannerUserID', fallback=''))
                 self.set('scanner_user_key', parser.get('swg-scanner', 'scannerUserKey', fallback=''))
-                self.set('mail_path', parser.get('swg-scanner', 'mailPath', fallback=''))
+
+                # Import old mail_path as first entry in mail_paths
+                old_path = parser.get('swg-scanner', 'mailPath', fallback='')
+                if old_path:
+                    self.set('mail_paths', [{"path": old_path, "label": ""}])
 
                 logger.info(f"Imported configuration from {old_config_path}")
                 return True
@@ -169,3 +182,17 @@ class ConfigManager:
             logger.error(f"Error importing old config: {e}")
 
         return False
+
+    def _migrate_mail_path(self) -> None:
+        """
+        Migrate old mail_path (string) to new mail_paths (list) format
+        """
+        # Check if old mail_path exists and mail_paths is empty
+        if "mail_path" in self.config and not self.config.get("mail_paths"):
+            old_path = self.config.get("mail_path", "")
+            if old_path:
+                self.config["mail_paths"] = [{"path": old_path, "label": ""}]
+                logger.info(f"Migrated old mail_path to mail_paths format")
+
+            # Remove old mail_path key
+            del self.config["mail_path"]

@@ -48,10 +48,29 @@ class MainWindow(ctk.CTk):
     def _setup_window(self):
         """Set up main window properties"""
         self.title("SWG Mail Tracker")
-        self.geometry("900x700")
+
+        # Set window size and position (center on screen)
+        window_width = 900
+        window_height = 900
+
+        # Get screen dimensions
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        # Calculate position to center window
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+        # Force update to apply geometry
+        self.update_idletasks()
+
+        # Debug: Print actual window size
+        logger.info(f"Window geometry set to: {window_width}x{window_height}")
 
         # Set minimum size
-        self.minsize(800, 600)
+        self.minsize(800, 700)
 
         # Set window icon
         try:
